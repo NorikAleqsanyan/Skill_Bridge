@@ -11,14 +11,13 @@ export class UpdateFreelancerSalaryDto {
 }
 export class UpdateFreelancerSkillDto {
   @ApiProperty()
-  @JoiSchema(Joi.number().integer())
-  salary: number;
-
+  @JoiSchema(Joi.string().required())
+  skillId: string;
 }
 export class DeleteFreelancerSkillDto {
   @ApiProperty()
-  @JoiSchema(Joi.number().integer())
-  salary: number;
+  @JoiSchema(Joi.string().required())
+  skillId: string;
 }
 
 

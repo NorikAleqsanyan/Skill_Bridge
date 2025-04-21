@@ -8,7 +8,7 @@ export type SkillsDocument = HydratedDocument<Skills>;
 
 @Schema()
 export class Skills {
-  id: string;
+  _id: string;
   
   @Prop()
   name: string;

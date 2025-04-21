@@ -9,7 +9,7 @@ export class CreateUserDto {
   @JoiSchema(Joi.string().required())
   last_name:string
   @ApiProperty()
-  @JoiSchema(Joi.string().required())
+  @JoiSchema(Joi.string().email().required())
   email: string;
   @ApiProperty()
   @JoiSchema(Joi.string().required())
@@ -24,7 +24,7 @@ export class CreateUserDto {
   @JoiSchema(Joi.number().integer().min(18).required())
   age: number;
   @ApiProperty()
-  @JoiSchema(Joi.number().integer().min(0).max(2).required())
+  @JoiSchema(Joi.number().integer().min(0).max(1).required())
   role: number;
   @ApiProperty()
   @JoiSchema(Joi.string().required())

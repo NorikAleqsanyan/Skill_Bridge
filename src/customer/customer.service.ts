@@ -13,6 +13,6 @@ export class CustomerService {
   }
 
   async findOne(id: string) {
-    return this.customerModel.findOne({id})
+    return this.customerModel.findById(id)
   }
 }

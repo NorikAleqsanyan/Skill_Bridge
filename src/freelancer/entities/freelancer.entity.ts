@@ -9,7 +9,7 @@ export type FreelancerDocument = HydratedDocument<Freelancer>;
 
 @Schema()
 export class Freelancer {
-  userId: number;
+  userId: string;
 
   @Prop()
   first_name: string;
@@ -29,7 +29,7 @@ export class Freelancer {
   @Prop({type:[{type:mongoose.Schema.Types.ObjectId,ref:"Job"}]})
   jobs:Job[]
 
-  @Prop({type:[{type:mongoose.Schema.Types.ObjectId,ref:"Skill"}]})
+  @Prop({type:[{type:mongoose.Schema.Types.ObjectId,ref:"Skills"}]})
   skills:Skills[]
 
   @Prop({type:mongoose.Schema.Types.ObjectId,ref:"User"})

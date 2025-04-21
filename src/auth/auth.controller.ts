@@ -77,7 +77,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
-  @Get('teacher')
+  @Get('freelancer')
   onlyFreelancer(@Request() req, @Res() res: Response) {
     try {
       const data = req.user;
@@ -89,7 +89,7 @@ export class AuthController {
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
-  @Get('student')
+  @Get('customer')
   onlyCustomer(@Request() req, @Res() res: Response) {
     try {
       const data = req.user;

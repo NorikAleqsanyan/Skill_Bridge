@@ -11,9 +11,9 @@ import { UserSchema } from 'src/user/entities/user.entity';
   imports: [
     MongooseModule.forFeature([
       { name: 'Freelancer', schema: FreelancerSchema },
-      {name:"Customer", schema:JobSchema},
-      {name:"Skills", schema:SkillsSchema},
-      {name:"User", schema:UserSchema}
+      { name: 'Customer', schema: JobSchema },
+      { name: 'Skills', schema: SkillsSchema },
+      { name: 'User', schema: UserSchema },
     ]),
   ],
   controllers: [FreelancerController],

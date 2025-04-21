@@ -29,9 +29,9 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
   @Get(':username')
-  async findUserByEmailOrUsername(@Param('id') username: string, email:string, @Res() res: Response) {
+  async findUserByEmailOrUsername(@Param('username') username: string, @Res() res: Response) {
     try {
-      const data = await this.userService.findUserByEmailOrUsername(username, email);
+      const data = await this.userService.findUserByEmailOrUsername(username);
       return res.status(HttpStatus.OK).json(data);
     } catch (e) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
@@ -40,7 +40,7 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
-  @Get(':id')
+  @Get('byId/:id')
   async findOne(@Param('id') id: string, @Res() res: Response) {
     try {
       const data = await this.userService.findOne(id);
@@ -76,7 +76,7 @@ export class UserController {
   ) {
     try {
       const data = await this.userService.updatePassword(
-        req.user.id,
+        req.user._id,
         updateUserPasswordDto,
       );
       return res.status(HttpStatus.OK).json(data);

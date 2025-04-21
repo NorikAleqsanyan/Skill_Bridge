@@ -64,10 +64,10 @@ export class UserService {
     return user;
   }
 
-  async findUserByEmailOrUsername(email: string, username: string) {
+  async findUserByEmailOrUsername(username: string) {
     return await this.userModel.findOne({
       $or: [
-        { email },
+        { email:username },
         { username }
       ]
     });
@@ -78,11 +78,13 @@ export class UserService {
   }
 
   async findOne(id: string) {
-    return await this.userModel.findOne({ where: { id } });
+    console.log(id);
+    
+    return await this.userModel.findById(id);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    const updatedUser = await this.userModel.findOne({ where: { id } });
+    const updatedUser = await this.userModel.findById(id);
 
     if (!updatedUser) {
       throw new BadRequestException('User not found');
@@ -121,8 +123,8 @@ export class UserService {
     if (!oldPassword || !password || !confirmPassword) {
       throw new BadRequestException('All password fields are required!');
     }
-
-    const user = await this.userModel.findOne({ where: { id } });
+    
+    const user = await this.userModel.findById(id);
 
     if (!user) {
       throw new BadRequestException('User not found!');
@@ -149,7 +151,7 @@ export class UserService {
   }
 
   async remove(id: string) {
-    const us = await this.userModel.findById({ where: { id } });
+    const us = await this.userModel.findById(id);
     if (!us) {
       return false;
     }

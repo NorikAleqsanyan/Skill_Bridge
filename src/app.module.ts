@@ -9,9 +9,15 @@ import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
 import { ConfigModule } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { JoiPipeModule } from 'nestjs-joi';
+import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client'),
+    }),
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     MongooseModule.forRoot('mongodb://127.0.0.1:27017/up-work'),
     AuthModule,
@@ -21,6 +27,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
     SkillsModule,
     JobModule,
     MailModule,
+    JoiPipeModule,
     MailerModule.forRoot({
       transport: {
         host: 'smtp.gmail.com',
@@ -36,5 +43,4 @@ import { MailerModule } from '@nestjs-modules/mailer';
     }),
   ],
 })
-
-export class AppModule { }
+export class AppModule {}

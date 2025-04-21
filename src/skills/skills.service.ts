@@ -26,12 +26,12 @@ export class SkillsService {
   }
 
   async findOne(id: string) {
-    return await this.skillModel.findOne({  where:{id} });
+    return await this.skillModel.findById(id);
   }
 
 
   async remove(id: string) {
-    const us = await this.skillModel.findById({ where: { id } });
+    const us = await this.skillModel.findById(id);
     if (!us) {
       return false;
     }

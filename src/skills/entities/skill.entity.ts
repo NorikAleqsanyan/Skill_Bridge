@@ -13,8 +13,8 @@ export class Skills {
   @Prop()
   name: string;
 
-  @Prop({type:[{type:mongoose.Schema.Types.ObjectId,ref:"Job"}]})
-  job:Job[]
+  @Prop([{type:mongoose.Schema.Types.ObjectId,ref:"Job"}])
+  jobs:Job[]
 
   @Prop({type:[{type:mongoose.Schema.Types.ObjectId,ref:"Freelancer"}]})
   freelancer:Freelancer[]

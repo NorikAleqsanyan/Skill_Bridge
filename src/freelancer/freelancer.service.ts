@@ -40,7 +40,7 @@ export class FreelancerService {
 
     await freelancer.save();
 
-    return freelancer;
+    return freelancer.populate("user");
   }
 
   async getFreelancersBySkills(skillId: string): Promise<Freelancer[]> {
@@ -55,27 +55,32 @@ export class FreelancerService {
     if (!minSalary || minSalary < 0) {
       throw new BadRequestException('Invalid minimum salary');
     }
-    return await this.freelancerModel.find({ salary: { $gte: minSalary } });
+    const fr = await this.freelancerModel.find();
+    const filtered = fr.filter((elm) => elm.salary >= minSalary);
+    return filtered
   }
 
   async getFreelancersByMaxSalary(maxSalary: number): Promise<Freelancer[]> {
     if (!maxSalary || maxSalary < 0) {
       throw new BadRequestException('Invalid maximum salary');
     }
-    return await this.freelancerModel.find({ salary: { $lte: maxSalary } });
+    const fr = await this.freelancerModel.find();
+    const filtered = fr.filter((elm) => elm.salary <= maxSalary);
+    return filtered
   }
 
-  async updateSelary(
+  async updateSalary(
     id: string,
     updateFreelancerSalaryDto: UpdateFreelancerSalaryDto,
   ) {
-    const updatedUser = await this.freelancerModel.findOne({ where: { id } });
+    const updatedUser = await this.freelancerModel.findById(id);
 
     if (!updatedUser) {
       throw new BadRequestException('Freelancer not found');
     }
 
     return await this.freelancerModel.findByIdAndUpdate(
+      id, 
       updateFreelancerSalaryDto,
     );
   }
@@ -95,11 +100,6 @@ export class FreelancerService {
     if (!sk) {
       throw new BadRequestException('Skill not found');
     }
-
-    // const sk1 = await this.freelancerModel.find({ skills: { $in: sk } });
-    // if(sk1){
-    //   throw new BadRequestException('Skill has alredy');
-    // }
 
     await this.freelancerModel.findByIdAndUpdate(id, { $push: { skills: sk } });
     await this.skillsModel.findByIdAndUpdate(skillId, {

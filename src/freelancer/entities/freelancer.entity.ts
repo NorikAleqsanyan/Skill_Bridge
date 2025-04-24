@@ -15,7 +15,7 @@ export class Freelancer {
   first_name: string;
 
   @Prop()
-  selary: string;
+  salary: number;
 
   @Prop()
   rating: number;

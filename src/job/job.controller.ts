@@ -1,18 +1,36 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Res, HttpStatus, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Res,
+  HttpStatus,
+  Req,
+} from '@nestjs/common';
 import { JobService } from './job.service';
 import { CreateJobDto } from './dto/create-job.dto';
-import { AddSkillDto, JobFeedbackDto, UpdateJobDto, UpdateJobStatusDto } from './dto/update-job.dto';
+import {
+  AddSkillDto,
+  JobFeedbackDto,
+  UpdateJobDto,
+  UpdateJobStatusDto,
+} from './dto/update-job.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { HasRoles } from 'src/auth/has-roles.decorator';
 import { Role } from 'src/user/role/user.enum';
 import { StatusJob } from './status/status.enum';
+import { Types } from 'mongoose';
 
 @Controller('job')
 export class JobController {
-  constructor(private readonly jobService: JobService) { }
+  constructor(private readonly jobService: JobService) {}
 
   @HasRoles(Role.CUSTOMER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
@@ -24,7 +42,7 @@ export class JobController {
     @Req() req,
   ) {
     try {
-      const data = await this.jobService.create(createJobDto, req.user.id);
+      const data = await this.jobService.create(createJobDto, req.user._id);
       return res.status(HttpStatus.CREATED).json(data);
     } catch (e) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
@@ -42,7 +60,7 @@ export class JobController {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
     }
   }
-  
+
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
   @Get(':id')
@@ -69,7 +87,7 @@ export class JobController {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
     }
   }
-  
+
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
   @Get(':userId/user')
@@ -154,8 +172,8 @@ export class JobController {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
     }
   }
-  
-  @HasRoles(Role.FREELANCER)
+
+  @HasRoles(Role.CUSTOMER, Role.FREELANCER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
   @Patch(':id/status')
@@ -178,6 +196,9 @@ export class JobController {
   }
 
   @HasRoles(Role.CUSTOMER)
+  @ApiResponse({
+    description:" gggggggggggg"
+  })
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
   @Patch(':id/feedback')
@@ -188,7 +209,7 @@ export class JobController {
     @Res() res: Response,
   ) {
     try {
-      const customerId = req.user.id;
+      const customerId = req.user._id;
       const updatedJob = await this.jobService.addFeedbackToJob(
         id,
         feedbackDto,
@@ -204,8 +225,8 @@ export class JobController {
   @HasRoles(Role.CUSTOMER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
-  @Patch(':id/deleteApplication/:freelancerId')
-  async deleteFreelancerRequest(
+  @Patch(':id/deleteFreelancerRequest/:freelancerId')
+  async deleteFreelancerRequest(//chi ashxatummmm
     @Param('id') jobId: string,
     @Param('freelancerId') freelancerId: string,
     @Res() res: Response,
@@ -215,12 +236,10 @@ export class JobController {
         jobId,
         freelancerId,
       );
-      return res
-        .status(HttpStatus.OK)
-        .json({
-          message: 'Freelancer request deleted successfully',
-          updatedJob,
-        });
+      return res.status(HttpStatus.OK).json({
+        message: 'Freelancer request deleted successfully',
+        updatedJob,
+      });
     } catch (e) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
     }

@@ -13,12 +13,6 @@ export class CreateJobDto {
   @JoiSchema(Joi.date().required())
   deadline: Date;
   @ApiProperty()
-  @JoiSchema(Joi.string().required())
-  customerId: string;
-  @ApiProperty()
-  @JoiSchema(Joi.string().optional())
-  freelancerId?: string;
-  @ApiProperty()
   @JoiSchema(Joi.array().items(Joi.string()).required())
   skills: string[];
 }

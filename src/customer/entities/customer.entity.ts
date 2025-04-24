@@ -8,6 +8,7 @@ export type CustomerDocument = HydratedDocument<Customer>;
 
 @Schema()
 export class Customer {
+  _id: String;
   userId: String;
 
   @Prop({type:[{type:mongoose.Schema.Types.ObjectId,ref:"Job"}]})

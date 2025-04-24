@@ -14,6 +14,7 @@ import {
   Res,
   HttpStatus,
   Req,
+  Query,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
@@ -69,34 +70,31 @@ export class FreelancerController {
     }
   }
 
-  @HasRoles(Role.CUSTOMER, Role.ADMIN)
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
-  @Get('by-min-salary')
+  @Get('filter/by-min-salary')
   async getFreelancersByMinSalary(
-    @Param('minSalary') minSalary: number,
+    @Query('min') min: number,
     @Res() res: Response,
   ) {
     try {
-      const freelancers =
-        await this.freelancerService.getFreelancersByMinSalary(minSalary);
+      const freelancers = await this.freelancerService.getFreelancersByMinSalary(min);
       return res.status(HttpStatus.OK).json(freelancers);
     } catch (e) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
     }
   }
 
-  @HasRoles(Role.CUSTOMER, Role.ADMIN)
+
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
-  @Get('by-max-salary')
+  @Get('filter/by-max-salary')
   async getFreelancersByMaxSalary(
-    @Param('maxSalary') maxSalary: number,
+    @Query('max') max: number,
     @Res() res: Response,
   ) {
     try {
-      const freelancers =
-        await this.freelancerService.getFreelancersByMaxSalary(maxSalary);
+      const freelancers = await this.freelancerService.getFreelancersByMaxSalary(max);
       return res.status(HttpStatus.OK).json(freelancers);
     } catch (e) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
@@ -106,15 +104,15 @@ export class FreelancerController {
   @HasRoles(Role.FREELANCER)
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
-  @Patch(':id/selary')
-  async updateSelary(
-    @Param('id') id: string,
+  @Patch(':id/salary')
+  async updateSalary(
+    @Req() req,
     @Body() updateFreelancerSalaryDto: UpdateFreelancerSalaryDto,
     @Res() res: Response,
   ) {
     try {
-      const data = await this.freelancerService.updateSelary(
-        id,
+      const data = await this.freelancerService.updateSalary(
+        req.user._id,
         updateFreelancerSalaryDto,
       );
       return res.status(HttpStatus.CREATED).json(data);

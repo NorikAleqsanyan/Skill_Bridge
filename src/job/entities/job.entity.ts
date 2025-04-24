@@ -10,7 +10,7 @@ export type JobDocument = HydratedDocument<Job>;
 
 @Schema()
 export class Job {
-  id: string;
+  _id: string;
 
   @Prop()
   title: string;
@@ -27,7 +27,7 @@ export class Job {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Customer" })
   customer: Customer
 
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Skill" }] })
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Skills" }] })
   skills: Skills[]
 
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Freelancer" }] })

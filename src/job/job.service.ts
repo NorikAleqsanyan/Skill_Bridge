@@ -1,6 +1,14 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
-import { AddSkillDto, JobFeedbackDto, UpdateJobDto } from './dto/update-job.dto';
+import {
+  AddSkillDto,
+  JobFeedbackDto,
+  UpdateJobDto,
+} from './dto/update-job.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Job } from './entities/job.entity';
 import { Model } from 'mongoose';
@@ -13,12 +21,12 @@ import { MailService } from 'src/mail/mail.service';
 @Injectable()
 export class JobService {
   constructor(
-    @InjectModel("Job") private jobModel: Model<Job>,
+    @InjectModel('Job') private jobModel: Model<Job>,
     @InjectModel('Customer') private customerModel: Model<Customer>,
     @InjectModel('Freelancer') private freelancerModel: Model<Freelancer>,
     @InjectModel('Skills') private skillModel: Model<Skills>,
     private mailService: MailService,
-  ) { }
+  ) {}
 
   async create(createJobDto: CreateJobDto, customerId: string) {
     const { title, description, deadline, skills } = createJobDto;
@@ -42,28 +50,33 @@ export class JobService {
       title,
       description,
       deadline,
-      customer,
       skills,
+      customer,
     });
 
     await this.customerModel.findByIdAndUpdate(customer, {
       $push: { jobs: job },
     });
-    skills.forEach(async (elm) => {
-      await this.skillModel.findByIdAndUpdate(elm, { $push: { jobs: job } });
-    });
+    for (const elm of skills) {
+      await this.skillModel.findByIdAndUpdate(elm, {
+        $push: { jobs: job._id },
+      });
+    }
     return job;
   }
 
   async findAll() {
-    return await this.jobModel.find().populate('skills')
+    return await this.jobModel
+      .find()
+      .populate('skills')
+      .populate('customer.user');
   }
 
   async findOne(jobId: string) {
     return await this.jobModel
-      .findOne({ where: { jobId } })
-      .populate('customer.user')
-      .populate('skills');
+      .findById(jobId)
+      .populate('skills')
+      .populate('customer.user');
   }
 
   async getJobsByStatus(status: StatusJob): Promise<any> {
@@ -108,23 +121,24 @@ export class JobService {
     if (!job) {
       throw new NotFoundException(`Job not found`);
     }
-    if (addSkillDto.skills) {
-      const skills = await this.skillModel
-        .find({ _id: { $in: addSkillDto.skills } })
-        .exec();
-      if (skills.length !== addSkillDto.skills.length) {
+    const { skills } = addSkillDto;
+    if (skills) {
+      const skill = await this.skillModel.find({ _id: { $in: skills } });
+
+      if (skill.length !== skills.length) {
         throw new NotFoundException('Some skills not found');
       }
     }
 
-    const { skills } = addSkillDto;
     skills.forEach(async (elm) => {
-      await this.skillModel.findByIdAndUpdate(elm, { $push: { jobs: job } });
+      await this.skillModel.findByIdAndUpdate(elm, {
+        $push: { jobs: job._id },
+      });
     });
     await this.jobModel.findByIdAndUpdate(job, {
       $push: { skills: skills },
     });
-    return await this.jobModel.findById(jobId).exec();
+    return await this.jobModel.findById(jobId);
   }
 
   async deleteSkillsInJob(jobId: string, skillId: string) {
@@ -136,9 +150,11 @@ export class JobService {
     if (!skill) {
       throw new NotFoundException(`Skill not found`);
     }
-    await this.skillModel.findByIdAndUpdate(skill, { $pull: { jobs: job } });
+    await this.skillModel.findByIdAndUpdate(skill, {
+      $pull: { jobs: job._id },
+    });
     await this.jobModel.findByIdAndUpdate(job, {
-      $pull: { skills: skill },
+      $pull: { skills: skill._id },
     });
     return await this.jobModel.findById(jobId).exec();
   }
@@ -166,10 +182,13 @@ export class JobService {
         $pull: { requestJob: job },
       });
     });
-    await this.mailService.sendEmail("aleqsanyan.004@gmail.com", "assignFreelancerToJob", "good");
+    await this.mailService.sendEmail(
+      'aleqsanyan.004@gmail.com',
+      'assignFreelancerToJob',
+      'good',
+    );
     return job;
   }
-
 
   async updateStatus(jobId: string, status: StatusJob): Promise<any> {
     const job = await this.jobModel.findById(jobId);
@@ -185,23 +204,36 @@ export class JobService {
     }
   }
 
+  /**
+   *
+   *  
+   * 
+   * @param id:string
+   * @param feedbackDto:JobFeedbackDto
+   * @param customerId:string
+   * @returns Job|null
+   */
   async addFeedbackToJob(
     id: string,
     feedbackDto: JobFeedbackDto,
     customerId: string,
-  ): Promise<Job> {
-    const job = await this.jobModel.findById(id).exec();
+  ): Promise<Job | null> {
+    const job = await this.jobModel.findById(id).populate('customer').exec();
 
     if (!job) {
+
       throw new NotFoundException(`Job with ID ${id} not found`);
     }
     const customer = await this.customerModel.findById(customerId);
     if (!customer) {
+
       throw new NotFoundException('Customer not found');
     }
+    console.log(customerId, job.customer._id.toString());
 
-    if (job.customer !== customer) {
-      throw new NotFoundException(`Jcutomer,,,, ${id} not found`);
+    if (job.customer._id.toString() !== customerId) {
+
+      throw new NotFoundException(`This work does not belong to you`);
     }
     if (job.status === StatusJob.END) {
       await this.jobModel.findByIdAndUpdate(job, {
@@ -211,9 +243,11 @@ export class JobService {
         },
       });
     } else {
+
       throw new NotFoundException('Job is not completed yet');
     }
-    return job;
+
+    return await this.jobModel.findById(id);
   }
 
   async deleteFreelancerRequest(
@@ -239,42 +273,51 @@ export class JobService {
     }
 
     await this.jobModel.findByIdAndUpdate(job, {
-      $pull: { requestFreelancer: freelancer },
+      $pull: { requestFreelancer: freelancer._id },
     });
     await this.freelancerModel.findByIdAndUpdate(freelancer, {
-      $pull: { requestJob: job },
+      $pull: { requestJob: job._id },
     });
-    await this.mailService.sendEmail("aleqsanyan.004@gmail.com", "Freelancer Request", "rejected")
+    await this.mailService.sendEmail(
+      'aleqsanyan.004@gmail.com',
+      'Freelancer Request',
+      'rejected',
+    );
     return job;
   }
 
   async remove(id: string) {
-    const job = await this.jobModel.findById({ where: { id } });
+    console.log(id);
+
+    const job = await this.jobModel.findById(id);
     if (!job) {
       return {
         message: 'job not found',
       };
     }
+
     if (job.status != StatusJob.START && job.freelancer) {
       return {
         message: 'Job is not started yet, but a freelancer is assigned',
       };
     }
 
-    const customer = job.customer;
+    const customer = job.customer.userId;
     const skills = job.skills;
     const requestFreelancer = job.requestFreelancer;
 
     await this.customerModel.findByIdAndUpdate(customer, {
-      $pull: { jobs: job },
+      $pull: { jobs: job._id },
     });
 
     skills.forEach(async (elm) => {
-      await this.skillModel.findByIdAndUpdate(elm, { $pull: { jobs: job } });
+      await this.skillModel.findByIdAndUpdate(elm, {
+        $pull: { jobs: job._id },
+      });
     });
     requestFreelancer.forEach(async (elm) => {
       await this.freelancerModel.findByIdAndUpdate(elm, {
-        $pull: { jobs: job },
+        $pull: { jobs: job._id },
       });
     });
     await this.jobModel.findByIdAndDelete(job);
@@ -296,7 +339,7 @@ export class JobService {
         await this.customerModel.findByIdAndUpdate(job.customer, {
           $push: { jobs: job },
         });
-        
+
         await this.jobModel.findByIdAndUpdate(job, { isBlock: false });
       } else {
         await this.customerModel.findByIdAndUpdate(job.customer, {
@@ -305,11 +348,15 @@ export class JobService {
         await this.customerModel.findByIdAndUpdate(job.customer, {
           $pull: { jobs: job },
         });
-        
+
         await this.jobModel.findByIdAndUpdate(job, { isBlock: true });
       }
     }
-    await this.mailService.sendEmail("aleqsanyan.004@gmail.com", "blocked", "Job is blocked") 
+    await this.mailService.sendEmail(
+      'aleqsanyan.004@gmail.com',
+      'blocked',
+      'Job is blocked',
+    );
     return {
       message: 'Job is blocked',
     };

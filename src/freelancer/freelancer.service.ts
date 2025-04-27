@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {
   DeleteFreelancerSkillDto,
@@ -20,15 +16,30 @@ export class FreelancerService {
     @InjectModel('Skills') private skillsModel: Model<Skills>,
   ) {}
 
+  /**
+   * Fetches all freelancers from the database.
+   *
+   * @returns List of all freelancers.
+   */
   async findAll() {
     return await this.freelancerModel.find();
   }
 
-  async getFreelancerById(freelancerId: string): Promise<Freelancer> {
+  /**
+   * Retrieves a freelancer by their unique ID.
+   *
+   * @param freelancerId - ID of the freelancer.
+   * @returns Freelancer data with associated user details.
+   * @throws return message if freelancer not found.
+   */
+  async getFreelancerById(freelancerId: string): Promise<any> {
     const freelancer = await this.freelancerModel.findById(freelancerId).exec();
 
     if (!freelancer) {
-      throw new NotFoundException('Freelancer not found');
+      return {
+        message: 'Freelancer not found.',
+        error: true,
+      };
     }
 
     const totalRating = freelancer.finishJob.reduce(
@@ -40,35 +51,73 @@ export class FreelancerService {
 
     await freelancer.save();
 
-    return freelancer.populate("user");
+    return freelancer.populate('user');
   }
 
-  async getFreelancersBySkills(skillId: string): Promise<Freelancer[]> {
+  /**
+   * Fetches freelancers by a given skill ID.
+   *
+   * @param skillId - ID of the skill.
+   * @returns List of freelancers who have the skill.
+   * @throws return message if skill not found.
+   */
+  async getFreelancersBySkills(skillId: string): Promise<any> {
     const skills = await this.skillsModel.findById(skillId);
     if (!skills) {
-      throw new BadRequestException('Skill not found');
+      return {
+        message: 'Skill not found.',
+        error: true,
+      };
     }
-    return await this.freelancerModel.find({ skills }).populate("user");
+    return await this.freelancerModel.find({ skills }).populate('user');
   }
 
-  async getFreelancersByMinSalary(minSalary: number): Promise<Freelancer[]> {
+  /**
+   * Fetches freelancers whose salary is greater than or equal to the minimum salary.
+   *
+   * @param minSalary - The minimum salary filter.
+   * @returns List of freelancers meeting the salary criteria.
+   * @throws return message if salary is invalid.
+   */
+  async getFreelancersByMinSalary(minSalary: number): Promise<any> {
     if (!minSalary || minSalary < 0) {
-      throw new BadRequestException('Invalid minimum salary');
+      return {
+        message: 'Invalid minimum salary.',
+        error: true,
+      };
     }
     const fr = await this.freelancerModel.find();
     const filtered = fr.filter((elm) => elm.salary >= minSalary);
-    return filtered
+    return filtered;
   }
 
-  async getFreelancersByMaxSalary(maxSalary: number): Promise<Freelancer[]> {
+  /**
+   * Fetches freelancers whose salary is less than or equal to the maximum salary.
+   *
+   * @param maxSalary - The maximum salary filter.
+   * @returns List of freelancers meeting the salary criteria.
+   * @throws return message if salary is invalid.
+   */
+  async getFreelancersByMaxSalary(maxSalary: number): Promise<any> {
     if (!maxSalary || maxSalary < 0) {
-      throw new BadRequestException('Invalid maximum salary');
+      return {
+        message: 'Invalid maximum salary.',
+        error: true,
+      };
     }
     const fr = await this.freelancerModel.find();
     const filtered = fr.filter((elm) => elm.salary <= maxSalary);
-    return filtered
+    return filtered;
   }
 
+  /**
+   * Updates the salary of a freelancer.
+   *
+   * @param id - Freelancer ID to update.
+   * @param updateFreelancerSalaryDto - New salary details.
+   * @returns Updated freelancer data.
+   * @throws return message if freelancer not found.
+   */
   async updateSalary(
     id: string,
     updateFreelancerSalaryDto: UpdateFreelancerSalaryDto,
@@ -76,32 +125,50 @@ export class FreelancerService {
     const updatedUser = await this.freelancerModel.findById(id);
 
     if (!updatedUser) {
-      throw new BadRequestException('Freelancer not found');
+      return {
+        message: 'Freelancer not found.',
+        error: true,
+      };
     }
 
     return await this.freelancerModel.findByIdAndUpdate(
-      id, 
+      id,
       updateFreelancerSalaryDto,
     );
   }
 
+  /**
+   * Adds a new skill to a freelancer.
+   *
+   * @param id - Freelancer ID to update.
+   * @param updateFreelancerSkillDto - Skill ID to add.
+   * @returns Updated freelancer data with the new skill.
+   * @throws return message if freelancer or skill not found.
+   */
   async updateSkill(
     id: string,
     updateFreelancerSkillDto: UpdateFreelancerSkillDto,
   ) {
     const updatedUser = await this.freelancerModel.findById(id);
     if (!updatedUser) {
-      throw new BadRequestException('Freelancer not found');
+      return {
+        message: 'Freelancer not found.',
+        error: true,
+      };
     }
     const { skillId } = updateFreelancerSkillDto;
-    const sk = await this.skillsModel.findById(skillId);
-    console.log(sk, updatedUser);
+    const skill = await this.skillsModel.findById(skillId);
 
-    if (!sk) {
-      throw new BadRequestException('Skill not found');
+    if (!skill) {
+      return {
+        message: 'Skill not found.',
+        error: true,
+      };
     }
 
-    await this.freelancerModel.findByIdAndUpdate(id, { $push: { skills: sk } });
+    await this.freelancerModel.findByIdAndUpdate(id, {
+      $push: { skills: skill },
+    });
     await this.skillsModel.findByIdAndUpdate(skillId, {
       $push: { freelancer: updatedUser },
     });
@@ -112,6 +179,14 @@ export class FreelancerService {
       .populate('user');
   }
 
+  /**
+   * Removes a skill from a freelancer.
+   *
+   * @param id - Freelancer ID to update.
+   * @param deleteFreelancerSkillDto - Skill ID to remove.
+   * @returns Updated freelancer data after removing the skill.
+   * @throws return message if freelancer or skill not found.
+   */
   async deleteSkill(
     id: string,
     deleteFreelancerSkillDto: DeleteFreelancerSkillDto,
@@ -119,17 +194,25 @@ export class FreelancerService {
     const updatedUser = await this.freelancerModel.findById(id);
 
     if (!updatedUser) {
-      throw new BadRequestException('Freelancer not found');
+      return {
+        message: 'Freelancer not found.',
+        error: true,
+      };
     }
 
     const { skillId } = deleteFreelancerSkillDto;
-    
+
     const sk = await this.skillsModel.findById(skillId);
     console.log(skillId, sk, updatedUser);
     if (!sk) {
-      throw new BadRequestException('Skill not found');
+      return {
+        message: 'Skill not found.',
+        error: true,
+      };
     }
-    await this.freelancerModel.findByIdAndUpdate(id, { $pull: { skills: skillId } });
+    await this.freelancerModel.findByIdAndUpdate(id, {
+      $pull: { skills: skillId },
+    });
     await this.skillsModel.findByIdAndUpdate(skillId, {
       $pull: { freelancer: id },
     });

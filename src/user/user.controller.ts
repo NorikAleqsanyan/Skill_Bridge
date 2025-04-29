@@ -4,7 +4,7 @@ import {
   UpdateUserDto,
   UpdateUserPasswordDto,
 } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 import { RolesGuard } from 'src/auth/roles.guard';
@@ -13,9 +13,11 @@ import { multerOptions } from 'src/upload/config';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
+
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get all users' })
   @Get()
   async findAll(@Res() res: Response) {
     try {
@@ -28,6 +30,7 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get a user by username or email' })
   @Get(':username')
   async findUserByEmailOrUsername(@Param('username') username: string, @Res() res: Response) {
     try {
@@ -40,6 +43,7 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get a user by ID' })
   @Get('byId/:id')
   async findOne(@Param('id') id: string, @Res() res: Response) {
     try {
@@ -52,6 +56,7 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Update user information' })
   @Patch(':id/update')
   async update(
     @Req() req,
@@ -68,6 +73,7 @@ export class UserController {
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Update user password' })
   @Patch(':id/password')
   async updatePassword(
     @Req() req,
@@ -88,6 +94,7 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Update user profile image' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -114,9 +121,10 @@ export class UserController {
     }
   }
 
-
+  
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Delete a user by ID' })
   @Delete(':id')
   async remove(@Req() req, @Res() res: Response) {
     try {

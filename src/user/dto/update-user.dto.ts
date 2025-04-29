@@ -19,16 +19,14 @@ export class UpdateUserDto {
 
 export class UpdateUserPasswordDto {
   @ApiProperty()
-  @JoiSchema(Joi.string().required())
+  @JoiSchema(Joi.string().min(8).required())
   oldPassword: string;
 
   @ApiProperty()
-  @JoiSchema(Joi.string().required())
+  @JoiSchema(Joi.string().min(8).required())
   password: string;
 
   @ApiProperty()
-  @JoiSchema(Joi.string().required())
+  @JoiSchema(Joi.string().min(8).required())
   confirmPassword: string;
-
-  // bolor texerum avelacnel min(8)
 }

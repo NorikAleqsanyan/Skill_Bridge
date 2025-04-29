@@ -20,18 +20,26 @@ import {
   UpdateJobStatusDto,
 } from './dto/update-job.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Response } from 'express';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { HasRoles } from 'src/auth/has-roles.decorator';
 import { Role } from 'src/user/role/user.enum';
 import { StatusJob } from './status/status.enum';
-import { Types } from 'mongoose';
 
+@ApiTags('Jobs')
 @Controller('job')
 export class JobController {
   constructor(private readonly jobService: JobService) {}
 
+  @ApiOperation({ summary: 'Create a new job (Customer only)' })
+  @ApiResponse({ status: 201, description: 'Job created successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
   @HasRoles(Role.CUSTOMER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
@@ -49,6 +57,8 @@ export class JobController {
     }
   }
 
+  @ApiOperation({ summary: 'Get all jobs' })
+  @ApiResponse({ status: 200, description: 'List of jobs' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
   @Get()
@@ -61,6 +71,9 @@ export class JobController {
     }
   }
 
+  @ApiOperation({ summary: 'Get job by ID' })
+  @ApiResponse({ status: 200, description: 'Job details' })
+  @ApiResponse({ status: 404, description: 'Job not found' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
   @Get(':id')
@@ -73,6 +86,7 @@ export class JobController {
     }
   }
 
+  @ApiOperation({ summary: 'Get jobs by status' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
   @Get(':status/status')
@@ -88,6 +102,7 @@ export class JobController {
     }
   }
 
+  @ApiOperation({ summary: 'Get jobs by user ID' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth('JWT-auth')
   @Get(':userId/user')
@@ -100,6 +115,7 @@ export class JobController {
     }
   }
 
+  @ApiOperation({ summary: 'Update a job (Customer only)' })
   @HasRoles(Role.CUSTOMER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
@@ -117,6 +133,7 @@ export class JobController {
     }
   }
 
+  @ApiOperation({ summary: 'Add skills to a job (Customer only)' })
   @HasRoles(Role.CUSTOMER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
@@ -134,6 +151,7 @@ export class JobController {
     }
   }
 
+  @ApiOperation({ summary: 'Remove skill from job (Customer only)' })
   @HasRoles(Role.CUSTOMER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
@@ -151,6 +169,7 @@ export class JobController {
     }
   }
 
+  @ApiOperation({ summary: 'Assign freelancer to job (Customer only)' })
   @HasRoles(Role.CUSTOMER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
@@ -173,6 +192,7 @@ export class JobController {
     }
   }
 
+  @ApiOperation({ summary: 'Update job status (Customer or Freelancer)' })
   @HasRoles(Role.CUSTOMER, Role.FREELANCER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
@@ -195,10 +215,8 @@ export class JobController {
     }
   }
 
+  @ApiOperation({ summary: 'Add feedback to job (Customer only)' })
   @HasRoles(Role.CUSTOMER)
-  @ApiResponse({
-    description:" gggggggggggg"
-  })
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
   @Patch(':id/feedback')
@@ -215,18 +233,20 @@ export class JobController {
         feedbackDto,
         customerId,
       );
-
       return res.status(HttpStatus.CREATED).json(updatedJob);
     } catch (e) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
     }
   }
 
+  @ApiOperation({
+    summary: 'Remove freelancer request from job (Customer only)',
+  })
   @HasRoles(Role.CUSTOMER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
   @Patch(':id/deleteFreelancerRequest/:freelancerId')
-  async deleteFreelancerRequest(//chi ashxatummmm
+  async deleteFreelancerRequest(
     @Param('id') jobId: string,
     @Param('freelancerId') freelancerId: string,
     @Res() res: Response,
@@ -236,15 +256,18 @@ export class JobController {
         jobId,
         freelancerId,
       );
-      return res.status(HttpStatus.OK).json({
-        message: 'Freelancer request deleted successfully',
-        updatedJob,
-      });
+      return res
+        .status(HttpStatus.OK)
+        .json({
+          message: 'Freelancer request deleted successfully',
+          updatedJob,
+        });
     } catch (e) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: e.message });
     }
   }
 
+  @ApiOperation({ summary: 'Block a job (Admin only)' })
   @HasRoles(Role.ADMIN)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
@@ -260,6 +283,7 @@ export class JobController {
     }
   }
 
+  @ApiOperation({ summary: 'Delete a job (Admin or Customer)' })
   @HasRoles(Role.ADMIN, Role.CUSTOMER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')

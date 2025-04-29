@@ -33,12 +33,12 @@ import { ServeStaticModule } from '@nestjs/serve-static';
         host: 'smtp.gmail.com',
         port: 587,
         auth: {
-          user: 'edohovakimyan555@gmail.com',
-          pass: 'tlld qpdh ezey eoew',
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD,
         },
       },
       defaults: {
-        from: 'edohovakimyan555@gmail.com',
+        from: process.env.EMAIL_USER,
       },
     }),
   ],

@@ -13,7 +13,7 @@ export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
   @HasRoles(Role.ADMIN, Role.CUSTOMER)
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new skill' })
   @Post()

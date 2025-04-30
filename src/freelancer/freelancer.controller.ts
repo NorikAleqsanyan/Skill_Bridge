@@ -40,7 +40,7 @@ export class FreelancerController {
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @HasRoles(Role.CUSTOMER, Role.ADMIN)
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
   @Get()
   async findAll(@Res() res: Response) {
@@ -61,7 +61,7 @@ export class FreelancerController {
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @HasRoles(Role.CUSTOMER, Role.ADMIN)
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
   @Get(':id')
   async findOne(@Param('id') id: string, @Res() res: Response) {
@@ -82,7 +82,7 @@ export class FreelancerController {
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @HasRoles(Role.CUSTOMER, Role.ADMIN)
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
   @Get('by-skills/:skillId')
   async getFreelancersBySkills(
@@ -152,7 +152,7 @@ export class FreelancerController {
   @ApiResponse({ status: 201, description: 'Salary updated successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @HasRoles(Role.FREELANCER)
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
   @Patch(':id/salary')
   async updateSalary(
@@ -178,6 +178,7 @@ export class FreelancerController {
   @ApiOperation({ summary: 'Update freelancer skills' })
   @ApiResponse({ status: 201, description: 'Skills updated successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
+  @HasRoles(Role.FREELANCER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
   @Patch('skill')
@@ -202,6 +203,7 @@ export class FreelancerController {
   @ApiOperation({ summary: 'Delete freelancer skill' })
   @ApiResponse({ status: 200, description: 'Skill deleted successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })
+  @HasRoles(Role.FREELANCER)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @ApiBearerAuth('JWT-auth')
   @Patch('/delete/skill')
